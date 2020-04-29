@@ -1,3 +1,24 @@
+var config = {
+    type: Phaser.AUTO,
+    parent: 'content',
+    width: 1600,
+    height: 1216,
+    zoom: 2,
+    pixelArt: true,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 0 }
+        }
+    },
+    scene: [
+        BootScene,
+        WorldScene
+    ]
+};
+
+var game = new Phaser.Game(config);
+
 var BootScene = new Phaser.Class({
  
     Extends: Phaser.Scene,
@@ -11,14 +32,11 @@ var BootScene = new Phaser.Class({
  
     preload: function ()
     {
-        //map tiles
-        this.load.image('tiles', 'images_src/map/tiled/spritesheet.png');
+        this.load.spritesheet('tiles', 'images_src/map/tiled/spritesheet.tsx');
         
-
-        // map in json format
         this.load.tilemapTiledJSON('map', 'images_src/map/tiled/map.json');
         
-        this.load.spritesheet('player', 'images_src/characters/elfo.png', { frameWidth: 16, frameHeight: 16 });
+        this.load.spritesheet('player', 'images_src/characters/elfo.png', { frameWidth: 60, frameHeight: 108 });
     },
  
     create: function ()
@@ -43,73 +61,70 @@ var WorldScene = new Phaser.Class({
     },
     create: function ()
     {
-        // create the map
         var map = this.make.tilemap({ key: 'map' });
         
-        // first parameter is the name of the tilemap in tiled
         var tiles = map.addTilesetImage('spritesheet', 'tiles');
 
-        var grass = map.createStaticLayer('Grass', tiles, 0, 0);
-        var obstacles = map.createStaticLayer('Obstacles', tiles, 0, 0);
+        var grass = map.createStaticLayer('grass', tiles, 0, 0);
+        var obstacles = map.createStaticLayer('obstacles', tiles, 0, 0);
     
         obstacles.setCollisionByExclusion([-1]);
 
         this.anims.create({
             key: 'left',
-            frames: this.anims.generateFrameNumbers('player', { frames: [1, 7, 1, 13]}),
+            frames: this.anims.generateFrameNumbers('player', { frames: [ 11, 12, 13, 14, 15]}),
             frameRate: 10,
             repeat: -1 
         });
-
+    
         this.anims.create({
                 key: 'right',
-                frames: this.anims.generateFrameNumbers('player', { frames: [1, 7, 1, 13]}),
+                frames: this.anims.generateFrameNumbers('player', { frames: [ 16, 17, 18, 19, 20]}),
                 frameRate: 10,
                 repeat: -1
         });
-
+    
         this.anims.create({
                 key: 'up',
-                frames: this.anims.generateFrameNumbers('player', { frames: [2, 8, 2, 14]}),
+                frames: this.anims.generateFrameNumbers('player', { frames: [ 6, 7, 8, 9, 10]}),
                 frameRate: 10,
                 repeat: -1
         });
-
+    
         this.anims.create({
                 key: 'down',
-                frames: this.anims.generateFrameNumbers('player', { frames: [ 0, 6, 0, 12 ] }),
+                frames: this.anims.generateFrameNumbers('player', { frames: [ 1, 2, 3, 4, 5 ]}),
                 frameRate: 10,
                 repeat: -1
         });        
 
-        // our player sprite created through the phycis system
+    
         this.player = this.physics.add.sprite(50, 100, 'player', 6);
 
-         // don't go out of the map
+         // pour ne pas aller au dela de la map 
          this.physics.world.bounds.width = map.widthInPixels;
          this.physics.world.bounds.height = map.heightInPixels;
          this.player.setCollideWorldBounds(true);
          
-         // don't walk on trees
+         // pour ne pas aller 
          this.physics.add.collider(this.player, obstacles);
  
-         // limit camera to map
+         // limite la caméra aux bordures de la map
          this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
          this.cameras.main.startFollow(this.player);
-         this.cameras.main.roundPixels = true; // avoid tile bleed
+         this.cameras.main.roundPixels = true; 
      
-         // user input
+         
          this.cursors = this.input.keyboard.createCursorKeys();
          
-         // where the enemies will be
+         // spawn d'un ennemi
          this.spawns = this.physics.add.group({ classType: Phaser.GameObjects.Zone });
          for(var i = 0; i < 30; i++) {
              var x = Phaser.Math.RND.between(0, this.physics.world.bounds.width);
              var y = Phaser.Math.RND.between(0, this.physics.world.bounds.height);
-             // parameters are x, y, width, height
-             this.spawns.create(x, y, 20, 20);            
+                    
          }        
-         // add collider
+         
          this.physics.add.overlap(this.player, this.spawns, this.onMeetEnemy, false, this);
      },
      onMeetEnemy: function(player, zone) {        
@@ -120,10 +135,6 @@ var WorldScene = new Phaser.Class({
          // shake the world
          this.cameras.main.shake(300);
          
-         // start battle 
-     },
-     update: function (time, delta)
-     {
      //    this.controls.update(delta);
      
          this.player.body.setVelocity(0);
@@ -174,24 +185,3 @@ var WorldScene = new Phaser.Class({
      }
      
  });
-
- var config = {
-    type: Phaser.AUTO,
-    parent: 'content',
-    width: 1600,
-    height: 1216,
-    zoom: 2,
-    pixelArt: true,
-    physics: {
-        default: 'arcade',
-        arcade: {
-            gravity: { y: 0 }
-        }
-    },
-    scene: [
-        BootScene,
-        WorldScene
-    ]
-};
-
-var game = new Phaser.Game(config);
